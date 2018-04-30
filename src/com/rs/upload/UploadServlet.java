@@ -1,5 +1,6 @@
 package com.rs.upload;
 
+import com.rs.FileSynchronizer;
 import com.rs.Resource;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
@@ -39,6 +40,8 @@ public class UploadServlet extends HttpServlet {
                 response.setHeader("newFileName", file.getName());
 
                 fileItem.write(file);
+
+                FileSynchronizer.INSTANCE.uploadToOneCom(file);
             }
         }catch (Exception e){
             LOG.log(Level.SEVERE, "Unable to upload file " + e.getMessage(), e);
