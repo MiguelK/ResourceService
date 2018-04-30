@@ -1,13 +1,12 @@
 package com.rs.upload;
 
-import com.rs.FileSynchronizer;
+import com.rs.FtpFileUploader;
 import com.rs.Resource;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -41,7 +40,7 @@ public class UploadServlet extends HttpServlet {
 
                 fileItem.write(file);
 
-                FileSynchronizer.INSTANCE.uploadToOneCom(file);
+                FtpFileUploader.INSTANCE.uploadToOneCom(file);
             }
         }catch (Exception e){
             LOG.log(Level.SEVERE, "Unable to upload file " + e.getMessage(), e);
