@@ -34,6 +34,9 @@ public class UploadServlet extends HttpServlet {
 
                 Resource resource = Resource.createWritable(fileItem.getName());
 
+                LOG.info("Received file " + fileItem.getName());
+
+
                 File file = resource.getFile();
 
                 response.setHeader("newFileName", file.getName());

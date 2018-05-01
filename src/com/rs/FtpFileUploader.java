@@ -100,7 +100,7 @@ public class FtpFileUploader {
                 boolean done = ftpClient.storeFile(remoteFileName, inputStream);
 
                 if (done) {
-                    System.out.println("Sound file uploaded successfully. " + remoteFileName);
+                    LOG.info("Sound file uploaded successfully. " + remoteFileName);
                 }
             } catch (Exception ex) {
                 System.out.println("Error: " + ex.getMessage());
