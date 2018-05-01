@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,16 +33,18 @@ public class FtpFileUploader {
 
     private final BlockingQueue<FileTask> workQueue;
 
-    FtpFileUploader() {
-        workQueue = new LinkedBlockingQueue<FileTask>(1000);
-        executorService = Executors.newFixedThreadPool(1);
+    private FtpFileUploader() {
+        workQueue = new ArrayBlockingQueue<FileTask>(1000);
+        executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Worker(workQueue));
+
     }
 
-    public void uploadToOneCom(File sourceFile) {
+    public void uploadToOneCom(File sourceFile, String originalName) {
         try {
-            workQueue.put(new FileTask(sourceFile));
-        } catch (InterruptedException ex) {
+            workQueue.put(new FileTask(sourceFile, originalName));
+            System.out.println("Added new task to queue " + workQueue.size());
+        } catch (Exception ex) {
             ex.printStackTrace();
             //   Thread.currentThread().interrupt();
         }
@@ -48,9 +52,32 @@ public class FtpFileUploader {
 
     private static class FileTask {
         private final File sourceFile;
+        private final String originalName;
 
-        FileTask(File sourceFile) {
+        FileTask(File sourceFile, String originalName) {
             this.sourceFile = sourceFile;
+            this.originalName = originalName;
+        }
+
+        public String getOriginalName() {
+            return originalName;
+        }
+
+        String getLang() {
+
+            //FileName=region-SEpid-1196194685eid--33a6eb58-211d4f63.m4a
+            if(originalName == null) {
+                return "trash";
+            }
+
+            int startOffset = originalName.indexOf("-") + 1;
+            int endOffset = originalName.indexOf("pid-");
+
+            if(endOffset <0 || endOffset>= originalName.length()){
+                return "trash";
+            }
+
+            return originalName.substring(startOffset, endOffset);
         }
 
         File getSourceFile() {
@@ -67,19 +94,32 @@ public class FtpFileUploader {
 
         @Override
         public void run() {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
+
+           /* FileTask task;
+            while((task = workQueue.take()) != null){
+                Thread.sleep(10);
+
+                    uploadFile(task);
+
+               // System.out.println("Consumed "+msg.getMsg());
+            }*/
+
+            while (true) { //!Thread.currentThread().isInterrupted()) {
+                try{
+                    System.out.println("Waiting...");
                     FileTask file = workQueue.take();
 
-                    uploadFile(file);
-                   // login();
+                    System.out.println(workQueue.size() + " Processing " + file.originalName);
 
-                    // Process item
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    break;
+                    uploadFile(file);
+
+                    Thread.sleep(1000);
+
+                }catch(Exception e) {
+                    e.printStackTrace();
                 }
             }
+
         }
 
         private static void showServerReply(FTPClient ftpClient) {
@@ -98,8 +138,11 @@ public class FtpFileUploader {
             String user = "pods.one";
             String pass = "Kodar%123";
 
+            //FileName=region-SEpid-1196194685eid--33a6eb58-211d4f63.m4a
+
+
             FTPClient ftpClient = new FTPClient();
-            InputStream inputStream;
+            InputStream inputStream = null;
             try {
 
                 ftpClient.connect(server, port);
@@ -108,45 +151,37 @@ public class FtpFileUploader {
 
                 ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-                // APPROACH #1: uploads first file using an InputStream
-              //File firstLocalFile = new File("D:/Test/Projects.zip");
+                //sound-files/swe/
+                String pathname = "/sound-files/" + sourceFile.getLang() + "/";
+                ftpClient.changeWorkingDirectory(pathname); //FIXME
 
-                String firstRemoteFile = sourceFile.getSourceFile().getName(); //"Projects.zip";
-                inputStream =  new FileInputStream(sourceFile.getSourceFile());// new FileInputStream(sourceFile);
+                String name = sourceFile.getSourceFile().getName();
+                String id = name.substring(0, name.lastIndexOf("."));
+                String remoteFileName = id + sourceFile.getOriginalName(); //sourceFile.getSourceFile().getName();
+                inputStream =  new FileInputStream(sourceFile.getSourceFile());
 
-                System.out.println("Start uploading first file " + firstRemoteFile);
-                boolean done = ftpClient.storeFile(firstRemoteFile, inputStream);
+                System.out.println("Start uploading first file " + remoteFileName);
+                boolean done = ftpClient.storeFile(remoteFileName, inputStream);
+
+
                 inputStream.close();
                 if (done) {
                     System.out.println("The first file is uploaded successfully.");
                 }
-
-                // APPROACH #2: uploads second file using an OutputStream
-              /*  File secondLocalFile = new File("E:/Test/Report.doc");
-                String secondRemoteFile = "test/Report.doc";
-                inputStream = new FileInputStream(secondLocalFile);
-
-                System.out.println("Start uploading second file");
-                OutputStream outputStream = ftpClient.storeFileStream(secondRemoteFile);
-                byte[] bytesIn = new byte[4096];
-                int read = 0;
-
-                while ((read = inputStream.read(bytesIn)) != -1) {
-                    outputStream.write(bytesIn, 0, read);
-                }
-                inputStream.close();
-                outputStream.close();*/
 
                 boolean completed = ftpClient.completePendingCommand();
                 if (completed) {
                     System.out.println("The second file is uploaded successfully.");
                 }
 
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 System.out.println("Error: " + ex.getMessage());
                 ex.printStackTrace();
             } finally {
                 try {
+                    if(inputStream!=null){
+                        inputStream.close();
+                    }
                     if (ftpClient.isConnected()) {
                         ftpClient.logout();
                         ftpClient.disconnect();
@@ -155,74 +190,6 @@ public class FtpFileUploader {
                     ex.printStackTrace();
                 }
             }
-        }
-
-        private void login() throws FtpException {
-
-            String server = "www.yourserver.net";
-            int port = 21;
-            String user = "username";
-            String pass = "password";
-            FTPClient ftpClient = new FTPClient();
-            try {
-                ftpClient.connect(server, port);
-                showServerReply(ftpClient);
-                int replyCode = ftpClient.getReplyCode();
-                if (!FTPReply.isPositiveCompletion(replyCode)) {
-                    System.out.println("Operation failed. Server reply code: " + replyCode);
-                    return;
-                }
-                boolean success = ftpClient.login(user, pass);
-                showServerReply(ftpClient);
-                if (!success) {
-                   throw  new FtpException("Could not login to the server");
-                } else {
-                    System.out.println("LOGGED IN SERVER");
-                }
-            } catch (IOException ex) {
-                throw  new FtpException("Oops! Something wrong happened " + ex.getMessage());
-            }
-
-         /*   FTPClient ftp = new FTPClient();
-            ftp.enterLocalPassiveMode();
-            FTPClientConfig config = new FTPClientConfig();
-            ftp.setControlKeepAliveTimeout(300); // set timeout to 5 minutes
-
-            // config.setXXX(YYY); // change required options
-            // for example config.setServerTimeZoneId("Pacific/Pitcairn")
-            ftp.configure(config );
-            boolean error = false;
-            try {
-                int reply;
-                String server = "ftp.example.com";
-                ftp.connect(server);
-                System.out.println("Connected to " + server + ".");
-                System.out.print(ftp.getReplyString());
-
-                // After connection attempt, you should check the reply code to verify
-                // success.
-                reply = ftp.getReplyCode();
-
-                if(!FTPReply.isPositiveCompletion(reply)) {
-                    ftp.disconnect();
-                    System.err.println("FTP server refused connection.");
-                    System.exit(1);
-                }
-//... // transfer files
-                ftp.logout();
-            } catch(IOException e) {
-                error = true;
-                e.printStackTrace();
-            } finally {
-                if(ftp.isConnected()) {
-                    try {
-                        ftp.disconnect();
-                    } catch(IOException ioe) {
-                        // do nothing
-                    }
-                }
-                System.exit(error ? 1 : 0);
-            }*/
         }
     }
 }

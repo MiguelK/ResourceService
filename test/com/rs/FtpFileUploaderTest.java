@@ -24,9 +24,9 @@ public class FtpFileUploaderTest {
 
 
         File source = new File("/Users/miguelkrantz/Documents/temp/Music1.m4a");
-        FtpFileUploader.INSTANCE.uploadToOneCom(source);
+        FtpFileUploader.INSTANCE.uploadToOneCom(source, "theName.m4a");
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
     }
 
 
