@@ -40,9 +40,9 @@ public class UploadServlet extends HttpServlet {
 
                 fileItem.write(file);
 
-                //if(FtpFileUploader.INSTANCE.create(fileItem.getName()).isPresent()){
+                if(fileItem.getName().startsWith("region-")){
                     FtpFileUploader.INSTANCE.uploadToOneCom(file, fileItem.getName());
-                //}
+                }
             }
         }catch (Exception e){
             LOG.log(Level.SEVERE, "Unable to upload file " + e.getMessage(), e);

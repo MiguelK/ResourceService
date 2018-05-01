@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 /**
  * Created by miguelkrantz on 2018-04-20.
@@ -18,11 +19,12 @@ public class FtpFileUploader {
 
     public static FtpFileUploader INSTANCE = new FtpFileUploader();
 
+    private static final Logger LOG = Logger.getLogger(FtpFileUploader.class.getName());
+
     private final ExecutorService executorService;
 
     private FtpFileUploader() {
         executorService = Executors.newSingleThreadExecutor();
-
     }
 
     public void uploadToOneCom(File sourceFile, String originalName) {
@@ -30,10 +32,8 @@ public class FtpFileUploader {
             FileTask fileTask = new FileTask(sourceFile, originalName);
 
             executorService.submit(fileTask);
-            //System.out.println("Added new task to queue " + workQueue.size());
         } catch (Exception ex) {
-            ex.printStackTrace();
-            //   Thread.currentThread().interrupt();
+            LOG.info("Failed submit new task " + ex.getMessage());
         }
     }
 
@@ -47,13 +47,11 @@ public class FtpFileUploader {
             this.originalName = originalName;
         }
 
-        public String getOriginalName() {
+        String getOriginalName() {
             return originalName;
         }
 
         String getLang() {
-
-            //FileName=region-SEpid-1196194685eid--33a6eb58-211d4f63.m4a
             if(originalName == null) {
                 return "trash";
             }
@@ -90,29 +88,20 @@ public class FtpFileUploader {
 
                 ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-                //sound-files/swe/
                 String pathname = "/sound-files/" + getLang() + "/";
-                ftpClient.changeWorkingDirectory(pathname); //FIXME
+                ftpClient.changeWorkingDirectory(pathname);
 
                 String name = getSourceFile().getName();
                 String id = name.substring(0, name.lastIndexOf("."));
-                String remoteFileName = id + getOriginalName(); //sourceFile.getSourceFile().getName();
+                String remoteFileName = id + getOriginalName();
                 inputStream =  new FileInputStream(getSourceFile());
 
                 System.out.println("Start uploading first file " + remoteFileName);
                 boolean done = ftpClient.storeFile(remoteFileName, inputStream);
 
-
-                inputStream.close();
                 if (done) {
-                    System.out.println("The first file is uploaded successfully.");
+                    System.out.println("Sound file uploaded successfully. " + remoteFileName);
                 }
-
-               /* boolean completed = ftpClient.completePendingCommand();
-                if (completed) {
-                    System.out.println("The second file is uploaded successfully.");
-                }*/
-
             } catch (Exception ex) {
                 System.out.println("Error: " + ex.getMessage());
                 ex.printStackTrace();
@@ -125,10 +114,6 @@ public class FtpFileUploader {
                         ftpClient.logout();
                         ftpClient.disconnect();
                     }
-
-                //    ftpClient.completePendingCommand();
-                    //    ftpClient.disconnect();
-
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
