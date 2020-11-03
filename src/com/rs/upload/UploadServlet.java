@@ -36,7 +36,6 @@ public class UploadServlet extends HttpServlet {
 
                 LOG.info("Received file " + fileItem.getName());
 
-
                 File file = resource.getFile();
 
                 response.setHeader("newFileName", file.getName());
@@ -44,13 +43,49 @@ public class UploadServlet extends HttpServlet {
                 fileItem.write(file);
 
                 if(fileItem.getName().startsWith("region-")){
-                    FtpFileUploader.INSTANCE.uploadToOneCom(file, fileItem.getName());
+                    String workingDirectory = "/sound-files/" + getLang(fileItem.getName()) + "/";
+                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
+                }
+
+                if(fileItem.getName().startsWith("playList-")){
+                    String workingDirectory = "/PlayLists/" + getPlayListDir(fileItem.getName()) + "/";
+                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
                 }
             }
         }catch (Exception e){
             LOG.log(Level.SEVERE, "Unable to upload file " + e.getMessage(), e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    private String getPlayListDir(String originalName) {
+        if(originalName == null) {
+            return "trash-playlist";
+        }
+
+        int startOffset = originalName.indexOf("-") + 1;
+        int endOffset = originalName.indexOf("end-");
+
+        if(endOffset <0 || endOffset>= originalName.length()){
+            return "trash-playlist";
+        }
+
+        return originalName.substring(startOffset, endOffset);
+    }
+
+    private String getLang(String originalName) {
+        if(originalName == null) {
+            return "trash";
+        }
+
+        int startOffset = originalName.indexOf("-") + 1;
+        int endOffset = originalName.indexOf("pid-");
+
+        if(endOffset <0 || endOffset>= originalName.length()){
+            return "trash";
+        }
+
+        return originalName.substring(startOffset, endOffset);
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

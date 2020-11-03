@@ -27,10 +27,9 @@ public class FtpFileUploader {
         executorService = Executors.newSingleThreadExecutor();
     }
 
-    public void uploadToOneCom(File sourceFile, String originalName) {
+    public void uploadToOneCom(String changeWorkingDirectory, File sourceFile, String originalName) {
         try {
-            FileTask fileTask = new FileTask(sourceFile, originalName);
-
+            FileTask fileTask = new FileTask(changeWorkingDirectory, sourceFile, originalName);
             executorService.submit(fileTask);
         } catch (Exception ex) {
             LOG.info("Failed submit new task " + ex.getMessage());
@@ -41,8 +40,10 @@ public class FtpFileUploader {
 
         private final File sourceFile;
         private final String originalName;
+        private final String changeWorkingDirectory;
 
-        FileTask(File sourceFile, String originalName) {
+        FileTask(String changeWorkingDirectory, File sourceFile, String originalName) {
+            this.changeWorkingDirectory = changeWorkingDirectory;
             this.sourceFile = sourceFile;
             this.originalName = originalName;
         }
@@ -51,20 +52,6 @@ public class FtpFileUploader {
             return originalName;
         }
 
-        String getLang() {
-            if(originalName == null) {
-                return "trash";
-            }
-
-            int startOffset = originalName.indexOf("-") + 1;
-            int endOffset = originalName.indexOf("pid-");
-
-            if(endOffset <0 || endOffset>= originalName.length()){
-                return "trash";
-            }
-
-            return originalName.substring(startOffset, endOffset);
-        }
 
         File getSourceFile() {
             return sourceFile;
@@ -88,8 +75,8 @@ public class FtpFileUploader {
 
                 ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-                String pathname = "/sound-files/" + getLang() + "/";
-                ftpClient.changeWorkingDirectory(pathname);
+               // String pathname = "/sound-files/" + getLang() + "/";
+                ftpClient.changeWorkingDirectory(changeWorkingDirectory);
 
                 String name = getSourceFile().getName();
                 String id = name.substring(0, name.lastIndexOf("."));
