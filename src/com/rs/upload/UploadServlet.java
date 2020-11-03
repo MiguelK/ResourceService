@@ -34,27 +34,29 @@ public class UploadServlet extends HttpServlet {
 
             for (FileItem fileItem : fileItems) {
 
-                Resource resource = Resource.createWritable(fileItem.getName());
-
                 LOG.info("Received file " + fileItem.getName());
 
-                File file = resource.getFile();
-
-                fileItem.write(file);
-
                 if(fileItem.getName().startsWith("region-")){
+                    Resource resource = Resource.createWritableRenameFile(fileItem.getName());
+                    File file = resource.getFile();
+                    fileItem.write(file);
+
                     response.setHeader("newFileName", file.getName());
 
                     String workingDirectory = "/sound-files/" + getLang(fileItem.getName()) + "/";
-                    FtpFileUploader.INSTANCE.uploadToOneCom(null, workingDirectory, file, fileItem.getName());
+                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
                 }
 
                 if(fileItem.getName().startsWith("playList-")){
-                    String format = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
-                    response.setHeader("newFileName", format + "-" + file.getName());
+                    Resource resource = Resource.createWritable(fileItem.getName());
+                    File file = resource.getFile();
+                    fileItem.write(file);
 
-                    String workingDirectory = "/play-lists/" + getPlayListDir(fileItem.getName()) + "/";
-                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, workingDirectory, file, fileItem.getName());
+                    String uniquePath = LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + file.getName();
+                    response.setHeader("uniquePath", uniquePath);
+
+                    String workingDirectory = "/play-lists/" +uniquePath + "/";
+                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
                 }
             }
         }catch (Exception e){

@@ -27,9 +27,9 @@ public class FtpFileUploader {
         executorService = Executors.newSingleThreadExecutor();
     }
 
-    public void uploadToOneCom(String makeDirectory, String workingDirectory, File sourceFile, String originalName) {
+    public void uploadToOneCom(String workingDirectory, File sourceFile, String originalName) {
         try {
-            FileTask fileTask = new FileTask(makeDirectory, workingDirectory, sourceFile, originalName);
+            FileTask fileTask = new FileTask(workingDirectory, sourceFile, originalName);
             executorService.submit(fileTask);
         } catch (Exception ex) {
             LOG.info("Failed submit new task " + ex.getMessage());
@@ -41,10 +41,8 @@ public class FtpFileUploader {
         private final File sourceFile;
         private final String originalName;
         private final String changeWorkingDirectory;
-        private final String makeDirectory;
 
-        FileTask(String makeDirectory, String changeWorkingDirectory, File sourceFile, String originalName) {
-            this.makeDirectory = makeDirectory;
+        FileTask(String changeWorkingDirectory, File sourceFile, String originalName) {
             this.changeWorkingDirectory = changeWorkingDirectory;
             this.sourceFile = sourceFile;
             this.originalName = originalName;
@@ -78,9 +76,7 @@ public class FtpFileUploader {
                 ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
                // String pathname = "/sound-files/" + getLang() + "/";
-                if(makeDirectory != null) {
-                    ftpClient.makeDirectory(makeDirectory);
-                }
+                ftpClient.makeDirectory(changeWorkingDirectory);
                 ftpClient.changeWorkingDirectory(changeWorkingDirectory);
 
 
@@ -90,7 +86,7 @@ public class FtpFileUploader {
                 inputStream =  new FileInputStream(getSourceFile());
 
                 System.out.println("Start uploading first file " + remoteFileName + ", to directory=" +
-                        changeWorkingDirectory + ", makeDirectory=" + makeDirectory);
+                        changeWorkingDirectory);
                 boolean done = ftpClient.storeFile(remoteFileName, inputStream);
 
                 if (done) {

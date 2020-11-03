@@ -35,7 +35,7 @@ public class Resource {
         return contentType;
     }
 
-    public static Resource createWritable(String fileName) {
+    public static Resource createWritableRenameFile(String fileName) {
 
         ContentType contentType = ContentType.parse(fileName);
 
@@ -46,6 +46,17 @@ public class Resource {
         String newName = ID_GENERATOR.getId() + "." + contentType.getExtension();
 
         return create(newName);
+    }
+
+    public static Resource createWritable(String fileName) {
+
+        ContentType contentType = ContentType.parse(fileName);
+
+        if(contentType ==null){
+            return INVALID_RESOURCE;
+        }
+
+        return create(fileName);
     }
 
     public static Resource create(String fileName) {
