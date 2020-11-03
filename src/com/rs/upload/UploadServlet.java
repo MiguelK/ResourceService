@@ -52,7 +52,7 @@ public class UploadServlet extends HttpServlet {
                     File file = resource.getFile();
                     fileItem.write(file);
 
-                    String uniquePath = fileItem.getHeaders().getHeader("uniquePath");
+                    String uniquePath = request.getHeader("uniquePath");
                     System.out.println("uniquePath=" + uniquePath);
                     if(uniquePath == null) {
                         uniquePath = LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + Resource.createUniqueID();
