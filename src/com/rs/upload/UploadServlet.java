@@ -44,12 +44,13 @@ public class UploadServlet extends HttpServlet {
 
                 if(fileItem.getName().startsWith("region-")){
                     String workingDirectory = "/sound-files/" + getLang(fileItem.getName()) + "/";
-                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
+                    FtpFileUploader.INSTANCE.uploadToOneCom(null, workingDirectory, file, fileItem.getName());
                 }
 
                 if(fileItem.getName().startsWith("playList-")){
                     String workingDirectory = "/play-lists/" + getPlayListDir(fileItem.getName()) + "/";
-                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
+                    String makeDirectory = getPlayListDir(fileItem.getName());
+                    FtpFileUploader.INSTANCE.uploadToOneCom(makeDirectory, workingDirectory, file, fileItem.getName());
                 }
             }
         }catch (Exception e){
