@@ -52,8 +52,12 @@ public class UploadServlet extends HttpServlet {
                     File file = resource.getFile();
                     fileItem.write(file);
 
-                    String uniquePath = LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + Resource.createUniqueID();
-                    response.setHeader("uniquePath", uniquePath);
+                    String uniquePath = fileItem.getHeaders().getHeader("uniquePath");
+                    System.out.println("uniquePath=" + uniquePath);
+                    if(uniquePath == null) {
+                        uniquePath = LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + Resource.createUniqueID();
+                        response.setHeader("uniquePath", uniquePath);
+                    }
 
                     String workingDirectory = "/play-lists/" +uniquePath + "/";
                     FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
