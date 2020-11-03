@@ -49,7 +49,7 @@ public class UploadServlet extends HttpServlet {
 
                 if(fileItem.getName().startsWith("playList-")){
                     String workingDirectory = "/play-lists/" + getPlayListDir(fileItem.getName()) + "/";
-                    String makeDirectory = getPlayListDir(fileItem.getName());
+                    String makeDirectory = "/play-lists/" + getPlayListDir(fileItem.getName()) + "/";
                     FtpFileUploader.INSTANCE.uploadToOneCom(makeDirectory, workingDirectory, file, fileItem.getName());
                 }
             }
