@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,19 +40,21 @@ public class UploadServlet extends HttpServlet {
 
                 File file = resource.getFile();
 
-                response.setHeader("newFileName", file.getName());
-
                 fileItem.write(file);
 
                 if(fileItem.getName().startsWith("region-")){
+                    response.setHeader("newFileName", file.getName());
+
                     String workingDirectory = "/sound-files/" + getLang(fileItem.getName()) + "/";
                     FtpFileUploader.INSTANCE.uploadToOneCom(null, workingDirectory, file, fileItem.getName());
                 }
 
                 if(fileItem.getName().startsWith("playList-")){
+                    String format = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+                    response.setHeader("newFileName", format + "-" + file.getName());
+
                     String workingDirectory = "/play-lists/" + getPlayListDir(fileItem.getName()) + "/";
-                    String makeDirectory = "/play-lists/" + getPlayListDir(fileItem.getName()) + "/";
-                    FtpFileUploader.INSTANCE.uploadToOneCom(makeDirectory, workingDirectory, file, fileItem.getName());
+                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, workingDirectory, file, fileItem.getName());
                 }
             }
         }catch (Exception e){
