@@ -52,7 +52,7 @@ public class UploadServlet extends HttpServlet {
                     File file = resource.getFile();
                     fileItem.write(file);
 
-                    String uniquePath = LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + file.getName();
+                    String uniquePath = LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + Resource.createUniqueID();
                     response.setHeader("uniquePath", uniquePath);
 
                     String workingDirectory = "/play-lists/" +uniquePath + "/";
@@ -63,21 +63,6 @@ public class UploadServlet extends HttpServlet {
             LOG.log(Level.SEVERE, "Unable to upload file " + e.getMessage(), e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
-    }
-
-    private String getPlayListDir(String originalName) {
-        if(originalName == null) {
-            return "trash-playlist";
-        }
-
-        int startOffset = originalName.indexOf("-") + 1;
-        int endOffset = originalName.indexOf("end-");
-
-        if(endOffset <0 || endOffset>= originalName.length()){
-            return "trash-playlist";
-        }
-
-        return originalName.substring(startOffset, endOffset);
     }
 
     private String getLang(String originalName) {

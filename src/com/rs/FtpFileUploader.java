@@ -40,10 +40,10 @@ public class FtpFileUploader {
 
         private final File sourceFile;
         private final String originalName;
-        private final String changeWorkingDirectory;
+        private final String workingDirectory;
 
-        FileTask(String changeWorkingDirectory, File sourceFile, String originalName) {
-            this.changeWorkingDirectory = changeWorkingDirectory;
+        FileTask(String workingDirectory, File sourceFile, String originalName) {
+            this.workingDirectory = workingDirectory;
             this.sourceFile = sourceFile;
             this.originalName = originalName;
         }
@@ -76,8 +76,8 @@ public class FtpFileUploader {
                 ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
                // String pathname = "/sound-files/" + getLang() + "/";
-                ftpClient.makeDirectory(changeWorkingDirectory);
-                ftpClient.changeWorkingDirectory(changeWorkingDirectory);
+                ftpClient.makeDirectory(workingDirectory);
+                ftpClient.changeWorkingDirectory(workingDirectory);
 
 
                 String name = getSourceFile().getName();
@@ -86,7 +86,7 @@ public class FtpFileUploader {
                 inputStream =  new FileInputStream(getSourceFile());
 
                 System.out.println("Start uploading first file " + remoteFileName + ", to directory=" +
-                        changeWorkingDirectory);
+                        workingDirectory);
                 boolean done = ftpClient.storeFile(remoteFileName, inputStream);
 
                 if (done) {

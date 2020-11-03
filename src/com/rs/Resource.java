@@ -48,6 +48,11 @@ public class Resource {
         return create(newName);
     }
 
+    public static String createUniqueID() {
+        return ID_GENERATOR.getId();
+
+    }
+
     public static Resource createWritable(String fileName) {
 
         ContentType contentType = ContentType.parse(fileName);
