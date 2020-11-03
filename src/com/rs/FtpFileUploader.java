@@ -27,9 +27,9 @@ public class FtpFileUploader {
         executorService = Executors.newSingleThreadExecutor();
     }
 
-    public void uploadToOneCom(String changeWorkingDirectory, File sourceFile, String originalName) {
+    public void uploadToOneCom(String workingDirectory, File sourceFile, String originalName) {
         try {
-            FileTask fileTask = new FileTask(changeWorkingDirectory, sourceFile, originalName);
+            FileTask fileTask = new FileTask(workingDirectory, sourceFile, originalName);
             executorService.submit(fileTask);
         } catch (Exception ex) {
             LOG.info("Failed submit new task " + ex.getMessage());
@@ -83,11 +83,11 @@ public class FtpFileUploader {
                 String remoteFileName = id + getOriginalName();
                 inputStream =  new FileInputStream(getSourceFile());
 
-                System.out.println("Start uploading first file " + remoteFileName);
+                System.out.println("Start uploading first file " + remoteFileName + ", to directory=" + changeWorkingDirectory);
                 boolean done = ftpClient.storeFile(remoteFileName, inputStream);
 
                 if (done) {
-                    LOG.info("Sound file uploaded successfully. " + remoteFileName);
+                    LOG.info("File uploaded successfully. " + remoteFileName + " to one.com");
                 }
             } catch (Exception ex) {
                 System.out.println("Error: " + ex.getMessage());
