@@ -20,9 +20,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.rs.FtpFileUploader.PLAY_LIST_FILE_PREFIX;
+
 public class UploadServlet extends HttpServlet {
 
     private static final Logger LOG = Logger.getLogger(UploadServlet.class.getName());
+
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -44,23 +47,27 @@ public class UploadServlet extends HttpServlet {
                     response.setHeader("newFileName", file.getName());
 
                     String workingDirectory = "/sound-files/" + getLang(fileItem.getName()) + "/";
-                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
+                    FtpFileUploader.INSTANCE.uploadToOneCom(null, workingDirectory, file, fileItem.getName());
                 }
 
-                if(fileItem.getName().startsWith("playList-")){
+                if(fileItem.getName().startsWith(PLAY_LIST_FILE_PREFIX)){
                     Resource resource = Resource.createWritable(fileItem.getName());
                     File file = resource.getFile();
                     fileItem.write(file);
 
+                    String languagePath =  request.getHeader("language") + "/";
+
                     String uniquePath = request.getHeader("uniquePath");
                     System.out.println("uniquePath=" + uniquePath);
+                    String level1Directory = null;
                     if(uniquePath == null) {
-                        uniquePath = LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + Resource.createUniqueID();
+                        level1Directory = "/" + FtpFileUploader.PLAY_LISTS_DIRECTORY + "/" + languagePath;
+                        uniquePath = languagePath + LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + Resource.createUniqueID();
                         response.setHeader("uniquePath", uniquePath);
                     }
 
-                    String workingDirectory = "/play-lists/" +uniquePath + "/";
-                    FtpFileUploader.INSTANCE.uploadToOneCom(workingDirectory, file, fileItem.getName());
+                    String workingDirectory = "/" + FtpFileUploader.PLAY_LISTS_DIRECTORY + "/" +uniquePath + "/";
+                    FtpFileUploader.INSTANCE.uploadToOneCom(level1Directory, workingDirectory, file, fileItem.getName());
                 }
             }
         }catch (Exception e){

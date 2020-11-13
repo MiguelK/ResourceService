@@ -17,8 +17,10 @@ import java.util.logging.Logger;
  */
 public class FtpFileUploader {
 
+    public static final String PLAY_LIST_FILE_PREFIX = "play-list";
     public static FtpFileUploader INSTANCE = new FtpFileUploader();
 
+    public static final String PLAY_LISTS_DIRECTORY = "play-lists";
     private static final Logger LOG = Logger.getLogger(FtpFileUploader.class.getName());
 
     private final ExecutorService executorService;
@@ -27,9 +29,9 @@ public class FtpFileUploader {
         executorService = Executors.newSingleThreadExecutor();
     }
 
-    public void uploadToOneCom(String workingDirectory, File sourceFile, String originalName) {
+    public void uploadToOneCom(String level1Directory, String workingDirectory, File sourceFile, String originalName) {
         try {
-            FileTask fileTask = new FileTask(workingDirectory, sourceFile, originalName);
+            FileTask fileTask = new FileTask(level1Directory, workingDirectory, sourceFile, originalName);
             executorService.submit(fileTask);
         } catch (Exception ex) {
             LOG.info("Failed submit new task " + ex.getMessage());
@@ -41,8 +43,10 @@ public class FtpFileUploader {
         private final File sourceFile;
         private final String originalName;
         private final String workingDirectory;
+        private final String level1Directory;
 
-        FileTask(String workingDirectory, File sourceFile, String originalName) {
+        FileTask(String level1Directory, String workingDirectory, File sourceFile, String originalName) {
+            this.level1Directory =level1Directory;
             this.workingDirectory = workingDirectory;
             this.sourceFile = sourceFile;
             this.originalName = originalName;
@@ -75,14 +79,22 @@ public class FtpFileUploader {
 
                 ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-               // String pathname = "/sound-files/" + getLang() + "/";
-                ftpClient.makeDirectory(workingDirectory);
-                ftpClient.changeWorkingDirectory(workingDirectory);
-
-
                 String name = getSourceFile().getName();
                 String id = name.substring(0, name.lastIndexOf("."));
                 String remoteFileName = id + getOriginalName();
+
+
+                if(name.contains(PLAY_LIST_FILE_PREFIX)) {
+                    remoteFileName = name;
+                }
+
+                if(level1Directory != null) {
+                    ftpClient.makeDirectory(level1Directory);
+                }
+
+                ftpClient.makeDirectory(workingDirectory);
+                ftpClient.changeWorkingDirectory(workingDirectory);
+
                 inputStream =  new FileInputStream(getSourceFile());
 
                 System.out.println("Start uploading first file " + remoteFileName + ", to directory=" +
