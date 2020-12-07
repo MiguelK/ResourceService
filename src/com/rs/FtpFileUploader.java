@@ -77,11 +77,17 @@ public class FtpFileUploader {
                 ftpClient.login(user, pass);
                 ftpClient.enterLocalPassiveMode();
 
-                ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+
 
                 String name = getSourceFile().getName();
                 String id = name.substring(0, name.lastIndexOf("."));
                 String remoteFileName = id + getOriginalName();
+
+                if(name.endsWith(".html") || name.endsWith(".txt")) {
+                    ftpClient.setFileType(FTP.ASCII_FILE_TYPE);
+                } else {
+                    ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+                }
 
 
                 if(name.contains(PLAY_LIST_FILE_PREFIX)) {

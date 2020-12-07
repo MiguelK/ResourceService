@@ -58,12 +58,12 @@ public class UploadServlet extends HttpServlet {
                     String languagePath =  request.getHeader("language") + "/";
 
                     String uniquePath = request.getHeader("uniquePath");
-                    System.out.println("uniquePath=" + uniquePath);
                     String level1Directory = null;
                     if(uniquePath == null) {
                         level1Directory = "/" + FtpFileUploader.PLAY_LISTS_DIRECTORY + "/" + languagePath;
                         uniquePath = languagePath + LocalDate.now().format(DateTimeFormatter.ISO_DATE) + "-" + Resource.createUniqueID();
                         response.setHeader("uniquePath", uniquePath);
+                        System.out.println("Created uniquePath=" + uniquePath);
                     }
 
                     String workingDirectory = "/" + FtpFileUploader.PLAY_LISTS_DIRECTORY + "/" +uniquePath + "/";
