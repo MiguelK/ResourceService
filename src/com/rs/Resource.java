@@ -58,6 +58,7 @@ public class Resource {
         ContentType contentType = ContentType.parse(fileName);
 
         if(contentType ==null){
+            System.out.println("INVALID_RESOURCE " + fileName);
             return INVALID_RESOURCE;
         }
 
@@ -101,6 +102,7 @@ public class Resource {
 
         jpg("image/jpeg","jpg"),
         png("image/png","png"),
+        html("text/html", "html"),
         json("application/json","json");
 
         private final String contentType;
