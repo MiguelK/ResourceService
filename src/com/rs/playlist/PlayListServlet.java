@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -35,6 +36,8 @@ public class PlayListServlet extends HttpServlet {
 
 
         String lang = request.getParameter("play_list_language");
+
+        LOG.info("Gert PlayList Directories lang=" + lang);
 
         if(lang != null) {
             String jsonPayload = fetchFromServer(lang.toUpperCase());
@@ -63,21 +66,19 @@ public class PlayListServlet extends HttpServlet {
             ftpClient.connect(server, port);
             ftpClient.login(user, pass);
             String status = ftpClient.getStatus();
-            LOG.info("fetchFromServer status=" + status);
-        //ftpClient.enterLocalPassiveMode();
+            ftpClient.enterLocalPassiveMode();
             //ftpClient.setFileType(FTP.);
 
             String workingDirectory = FtpFileUploader.PLAY_LISTS_DIRECTORY + "/" + lang;
-            LOG.info("workingDirectory=" + workingDirectory);
             ftpClient.changeWorkingDirectory(workingDirectory);
 
             FTPFile[] files = ftpClient.listFiles();
-            System.out.println(files.length);
+            LOG.info("workingDirectory=" + workingDirectory + " dirs=" + files.length);
             ArrayList<String> directoryNames = new ArrayList<>();
             for (FTPFile file : files) {
                 if(file.getName().length() > 5){
                     directoryNames.add(file.getName());
-                                   } 
+                }
             }
 
             return new Gson().toJson(directoryNames);
