@@ -13,6 +13,10 @@
         <servlet-name>UploadServlet</servlet-name>
         <servlet-class>com.rs.upload.UploadServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>PlayListServlet</servlet-name>
+        <servlet-class>com.rs.playlist.PlayListServlet</servlet-class>
+    </servlet>
 
     <!--
     <servlet>
@@ -31,6 +35,10 @@
         <url-pattern>/download/*</url-pattern>
     </servlet-mapping>
 -->
+    <servlet-mapping>
+        <servlet-name>PlayListServlet</servlet-name>
+        <url-pattern>/playlist/*</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>UploadServlet</servlet-name>
